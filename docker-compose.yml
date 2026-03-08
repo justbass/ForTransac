@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    container_name: fortransac_web
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+      - DB_PASS=root
+      - DB_USER=root
+      - DB_NAME=fortransac_db
+      - DB_HOST=db
+    networks:
+      - fortransac_net
+
+  db:
+    image: mysql:5.7
+    container_name: fortransac_db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fortransac_db
+    volumes:
+      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+      - fortransac_dbdata:/var/lib/mysql
+    networks:
+      - fortransac_net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: fortransac_pma
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - db
+    networks:
+      - fortransac_net
+
+volumes:
+  fortransac_dbdata:
+
+networks:
+  fortransac_net:
+    driver: bridge
